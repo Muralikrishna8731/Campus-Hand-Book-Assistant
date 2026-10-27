@@ -6,10 +6,25 @@ import urllib.request
 import urllib.error
 from http.server import HTTPServer
 from unittest.mock import patch
-from rag import Index, chunk_documents, cosine, build_prompt, citation_check, generate, embed
+from rag import (
+    Index, chunk_documents, cosine, build_prompt, citation_check, generate,
+    embed, has_keyword_evidence, is_greeting,
+)
 from app import Handler, STATE, read_uploads
 
 class PipelineTests(unittest.TestCase):
+    def test_greeting_detection(self):
+        for greeting in ('Hi!', 'hello there', 'Good morning.', 'How are you?', 'Thanks!',
+                         'Hi, good morning!', 'Hello, how are you?'):
+            with self.subTest(greeting=greeting):
+                self.assertTrue(is_greeting(greeting))
+        self.assertFalse(is_greeting('Hi, how many books can I borrow?'))
+
+    def test_keyword_evidence_requires_a_content_term(self):
+        hits = [{'text':'Library books renew fourteen days'}]
+        self.assertTrue(has_keyword_evidence('How many books can I borrow?', hits))
+        self.assertFalse(has_keyword_evidence('What is the capital of France?', hits))
+
     def test_tail_overlap_and_page_metadata(self):
         words = ['w'+str(i) for i in range(53)]
         chunks = chunk_documents([{'source':'x.txt','page':4,'text':' '.join(words)}],20,5)
@@ -85,6 +100,12 @@ class HTTPTests(unittest.TestCase):
     def test_browser_page_and_index_ask(self):
         with urllib.request.urlopen(self.url) as r:
             self.assertIn(b'Campus Handbook Assistant',r.read())
+        with urllib.request.urlopen(self.url+'/chat') as r:
+            chat_page=r.read()
+            self.assertIn(b'id="launcher"',chat_page)
+            self.assertIn(b'id="chatPanel"',chat_page)
+            self.assertIn(b'class="side-settings"',chat_page)
+            self.assertIn(b'backdrop-filter:blur',chat_page)
         result=self.post('/api/index',{'sample':True,'mode':'keyword'})
         self.assertGreater(result['chunks'],0)
         answer=self.post('/api/ask',{'question':'How many books can students borrow?','k':3})
@@ -108,5 +129,31 @@ class HTTPTests(unittest.TestCase):
             result=self.post('/api/ask',{'question':'How many books?','answer_mode':'rag'})
         self.assertEqual(result['answer'],'Four books [S1].')
         self.assertTrue(result['citations']['has_citation'])
+
+    def test_rag_greeting_without_index_does_not_call_model(self):
+        STATE['index']=None
+        with patch('app.generate') as generate:
+            result=self.post('/api/ask',{'question':'Good morning!','answer_mode':'rag'})
+        self.assertIn('Hello!',result['answer'])
+        self.assertEqual(result['hits'],[])
+        generate.assert_not_called()
+
+    def test_rag_rejects_keyword_off_topic_without_generation(self):
+        self.post('/api/index',{'sample':True,'mode':'keyword'})
+        with patch('app.generate') as generate:
+            result=self.post('/api/ask',{'question':'What is the capital of France?','answer_mode':'rag'})
+        self.assertIn("I don't know from these documents",result['answer'])
+        generate.assert_not_called()
+
+    def test_rag_rejects_weak_semantic_match_without_generation(self):
+        class SemanticIndex:
+            mode='semantic'
+            def search(self, question, k):
+                return [{'label':'S1','score':0.57,'source':'a','page':1,'chunk':1,'text':'Relevant documents'}]
+        STATE['index']=SemanticIndex()
+        with patch('app.generate') as generate:
+            result=self.post('/api/ask',{'question':'An unrelated question','answer_mode':'rag'})
+        self.assertIn("I don't know from these documents",result['answer'])
+        generate.assert_not_called()
 
 if __name__ == '__main__': unittest.main(verbosity=2)

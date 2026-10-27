@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Campus Handbook Assistant</title>
+<style>
+:root{color-scheme:light;--ink:#17212b;--muted:#667789;--line:#ffffffa8;--accent:#118b77;--glass:#ffffffb8}
+*{box-sizing:border-box}
+body{min-height:100vh;margin:0;color:var(--ink);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 18% 15%,#d1e8e7 0,transparent 42%),radial-gradient(ellipse at 84% 78%,#d9d7f0 0,transparent 40%),linear-gradient(135deg,#eef3f6,#e8eef5)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+.page-shell{min-height:100vh;display:flex;gap:24px;padding:22px}
+.side-settings{width:290px;flex:none;align-self:flex-start;max-height:calc(100dvh - 44px);overflow:auto;padding:17px;border:1px solid #ffffffc9;border-radius:22px;background:#ffffff8c;backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%);box-shadow:0 16px 48px #32475b16}
+.side-brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.side-brand .brand-mark{width:38px;height:38px;flex:none;margin:0;border-radius:13px}
+.side-brand .brand-mark svg{width:22px}
+.side-brand-title{font-size:14px;font-weight:700;line-height:1.2}
+.side-brand-subtitle{margin-top:3px;color:var(--muted);font-size:10px}
+.side-settings .classic-link{margin:0 0 15px}
+.side-heading{margin:13px 0 5px;color:#425963;font-size:12px;font-weight:700}
+.settings-divider{height:1px;margin:14px 0;border:0;background:#ffffffcf}
+.index-status{padding:7px 9px;border:1px solid #ffffffcf;border-radius:9px;color:#59716e;background:#ffffff8c;font-size:10px}
+.landing{flex:1;min-width:0;min-height:calc(100vh - 44px);display:grid;place-items:center;padding:24px}
+.landing-card{width:min(580px,100%);padding:38px;border:1px solid #ffffffb8;border-radius:28px;background:#ffffff62;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 24px 80px #32475b18;text-align:center}
+.brand-mark{width:58px;height:58px;margin:0 auto 18px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#158d7a,#4abca6);color:#fff;box-shadow:0 12px 28px #158d7a40}
+.landing h1{font-size:clamp(28px,5vw,40px);line-height:1.15;letter-spacing:-1.3px;margin:0 0 12px}
+.landing p{color:#5d7081;margin:0 auto 22px;max-width:430px}
+.classic-link{display:inline-flex;align-items:center;gap:7px;color:#326d68;font-size:13px;font-weight:600;text-decoration:none}
+.classic-link:hover{text-decoration:underline}
+.launcher{position:fixed;right:26px;bottom:26px;z-index:20;width:68px;height:68px;border:1px solid #ffffffa6;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#168d79,#34b19b);box-shadow:0 12px 32px #147a6c59,0 0 0 7px #ffffff50;transition:transform .2s,box-shadow .2s}
+.launcher:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 38px #147a6c66,0 0 0 9px #ffffff68}
+.launcher:focus-visible,.icon-button:focus-visible,.send:focus-visible{outline:3px solid #65cdbb;outline-offset:3px}
+.launcher-pulse{position:absolute;inset:-7px;border:1px solid #168d7950;border-radius:50%;animation:pulse 2.8s ease-out infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(.88);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+.launcher svg{width:31px;height:31px}
+.panel{position:fixed;z-index:19;right:26px;bottom:108px;width:min(410px,calc(100vw - 28px));height:min(680px,calc(100dvh - 138px));min-height:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #ffffffc9;border-radius:24px;background:#f8fbfce0;backdrop-filter:blur(28px) saturate(155%);-webkit-backdrop-filter:blur(28px) saturate(155%);box-shadow:0 28px 90px #1e344442,0 2px 12px #fff8;transform-origin:bottom right;animation:open-panel .2s ease-out}
+@keyframes open-panel{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.panel-header{min-height:68px;display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid #ffffffc7;background:#ffffff75}
+.avatar{width:38px;height:38px;flex:none;border-radius:14px;display:grid;place-items:center;color:white;background:linear-gradient(145deg,#168d79,#43b8a2);box-shadow:0 5px 13px #168d7940}
+.avatar svg{width:22px;height:22px}
+.header-copy{flex:1;min-width:0}
+.header-title{font-size:14px;font-weight:700;line-height:1.2}
+.header-subtitle{margin-top:4px;color:var(--muted);font-size:11px}
+.icon-button{width:34px;height:34px;flex:none;border:1px solid #ffffffb8;border-radius:11px;color:#49616d;background:#ffffff8a;font-size:20px;line-height:1}
+.icon-button:hover{background:#fff}
+.panel-toolbar{display:flex;align-items:center;gap:7px}
+.status-dot{width:7px;height:7px;display:inline-block;margin-right:5px;border-radius:50%;background:#21a885;vertical-align:1px}
+.status{color:#5a726f;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-body{padding:2px 0 0;display:grid;grid-template-columns:1fr;gap:9px}
+.field{min-width:0}
+.field.wide{grid-column:1}
+.field label{display:block;margin:0 0 4px;color:#596c78;font-size:10px;font-weight:650}
+.field input,.field select{width:100%;min-width:0;height:32px;padding:5px 7px;border:1px solid #d5e0e3;border-radius:9px;outline:none;color:#273844;background:#ffffffb8;font-size:11px}
+.field input[type=file]{height:auto;padding:5px;font-size:10px}
+.field input:focus,.field select:focus{border-color:#57ad9c;box-shadow:0 0 0 2px #57ad9c20}
+.hint{margin:4px 0 0;color:#7a8a94;font-size:10px}
+.build-row{display:flex;gap:7px;margin-top:8px}
+.build{flex:1;min-width:0;padding:7px 8px;border:1px solid #d6e0e2;border-radius:9px;color:#394b56;background:#ffffffb8;font-size:10px;font-weight:650}
+.build.primary{border-color:#168d79;color:#fff;background:linear-gradient(135deg,#168d79,#29a58e)}
+.build:hover:not(:disabled){filter:brightness(.97)}
+button:disabled{opacity:.55;cursor:wait}
+.chat{flex:1;min-height:0;overflow:auto;padding:16px 14px;scroll-behavior:smooth}
+.welcome{margin:22px 4px 12px;text-align:center}
+.welcome-icon{width:43px;height:43px;margin:0 auto 11px;border:1px solid #fff;border-radius:16px;display:grid;place-items:center;color:#168d79;background:#ffffffa3}
+.welcome-icon svg{width:23px}
+.welcome h1{margin:0 0 6px;font-size:19px;letter-spacing:-.3px}
+.welcome p{margin:0 auto 16px;color:#71818d;font-size:12px}
+.suggestions{display:grid;gap:7px}
+.suggestion{padding:9px 11px;border:1px solid #ffffffd1;border-radius:12px;text-align:left;color:#40545e;background:#ffffff82;font-size:11px;transition:background .15s,transform .15s}
+.suggestion:hover{transform:translateY(-1px);background:#ffffffd8}
+.messages{display:flex;flex-direction:column;gap:13px}
+.message{display:flex;gap:8px;align-items:flex-start}
+.message.user{justify-content:flex-end}
+.bubble{max-width:88%;padding:10px 12px;border:1px solid #ffffffc9;border-radius:15px;color:#344651;background:#ffffffa6;box-shadow:0 4px 14px #334c5910;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.user .bubble{border-color:#168d7940;border-bottom-right-radius:5px;color:#fff;background:linear-gradient(145deg,#168d79,#209c86)}
+.assistant .bubble{border-bottom-left-radius:5px}
+.mini-avatar{width:25px;height:25px;flex:none;border-radius:9px;display:grid;place-items:center;color:#fff;background:#168d79}
+.mini-avatar svg{width:15px}
+.assistant-content{min-width:0;max-width:calc(100% - 34px)}
+.sources{margin-top:8px;border:1px solid #ffffffc9;border-radius:11px;background:#ffffff62}
+.sources summary{padding:7px 9px;color:#54716e;font-size:10px;font-weight:600;cursor:pointer}
+.source{margin:0 8px 8px;padding:7px 9px;border-left:2px solid #42a994;border-radius:0 8px 8px 0;background:#ffffffa3;color:#52636e;font-size:10px}
+.source p{margin:4px 0 0;white-space:pre-wrap}
+.composer-wrap{flex:none;padding:10px 12px 12px;border-top:1px solid #ffffffb8;background:#ffffff5c}
+.notice{min-height:15px;margin:0 3px 6px;color:#637a82;font-size:10px}
+.composer{display:flex;align-items:flex-end;gap:8px;padding:7px 8px 7px 12px;border:1px solid #ffffffdd;border-radius:17px;background:#ffffffb8;box-shadow:0 5px 18px #3a566515}
+.composer:focus-within{border-color:#7dc3b6;box-shadow:0 0 0 3px #68b7a520}
+#question{flex:1;min-width:0;max-height:108px;resize:none;border:0;outline:0;color:#273944;background:transparent;font:inherit;font-size:12px;line-height:1.45}
+#question::placeholder{color:#82919a}
+.send{width:32px;height:32px;flex:none;border:0;border-radius:11px;color:white;background:linear-gradient(145deg,#168d79,#29a58e);font-size:19px;line-height:1}
+.send:disabled{opacity:.5}
+.footnote{margin:6px 0 0;color:#87959c;text-align:center;font-size:9px}
+@media(max-width:760px){.page-shell{display:block;padding:12px}.side-settings{width:100%;max-height:45vh;margin-bottom:10px}.landing{min-height:45vh;padding:14px}.landing-card{padding:26px}}
+@media(max-width:520px){.page-shell{padding:8px}.side-settings{max-height:42vh;padding:13px}.launcher{right:18px;bottom:18px;width:62px;height:62px}.panel{right:10px;bottom:91px;width:calc(100vw - 20px);height:min(700px,calc(100dvh - 108px));min-height:0;border-radius:21px}.landing{min-height:42vh;padding:8px}.landing-card{padding:24px 18px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="page-shell">
+<aside class="side-settings" aria-label="Assistant settings">
+  <div class="side-brand">
+    <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v7.4a2.8 2.8 0 0 1-2.8 2.8H9l-4 3v-1.5Z"/><path d="M8.5 9.5h7M8.5 13h4"/></svg></div>
+    <div><div class="side-brand-title">Campus Assistant</div><div class="side-brand-subtitle">Knowledge & answer settings</div></div>
+  </div>
+  <a class="classic-link" href="/">← Open the classic full interface</a>
+  <div class="side-heading">Knowledge</div>
+  <div class="field"><label for="files">Upload documents (optional)</label><input id="files" type="file" multiple accept=".txt,.md,.pdf"><p class="hint">TXT, MD, or text-based PDF · under 5 MB</p></div>
+  <div class="field"><label for="mode">Retrieval</label><select id="mode"><option value="keyword">TF-IDF · no model needed</option><option value="semantic">Semantic · Ollama needed</option></select></div>
+  <div class="field"><label for="size">Chunk size (words)</label><input id="size" type="number" min="20" max="200" value="100"></div>
+  <div class="field"><label for="overlap">Overlap (words)</label><input id="overlap" type="number" min="0" max="199" value="20"></div>
+  <div class="build-row"><button class="build primary" id="sample" type="button">Build sample index</button><button class="build" id="upload" type="button">Index files</button></div>
+  <div class="index-status" role="status"><i class="status-dot"></i><span id="indexStatus">No index built</span></div>
+  <hr class="settings-divider">
+  <div class="side-heading">Answer settings</div>
+  <div class="field"><label for="answerMode">Mode</label><select id="answerMode"><option value="evidence">Evidence only · no Ollama</option><option value="rag">RAG · evidence + local LLM</option><option value="plain">LLM only</option></select></div>
+  <div class="field"><label for="model">Generation model</label><select id="model"><option>qwen2.5:1.5b</option><option>qwen2.5:0.5b</option></select></div>
+  <div class="field"><label for="k">Retrieved passages</label><input id="k" type="number" min="1" max="5" value="3"></div>
+  <p class="hint">Semantic retrieval and generated answers require Ollama. Sample policies are fictional teaching data, not official VCET rules.</p>
+</aside>
+<main class="landing">
+  <section class="landing-card">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v7.4a2.8 2.8 0 0 1-2.8 2.8H9l-4 3v-1.5Z"/><path d="M8.5 9.5h7M8.5 13h4"/></svg>
+    </div>
+    <h1>Campus Handbook Assistant</h1>
+    <p>Open the assistant to ask questions about your handbook. Build an index from the settings panel to get started.</p>
+  </section>
+</main>
+</div>
+<button class="launcher" id="launcher" type="button" aria-label="Open chat assistant" aria-expanded="false" aria-controls="chatPanel">
+  <span class="launcher-pulse" aria-hidden="true"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v7.4a2.8 2.8 0 0 1-2.8 2.8H9l-4 3v-1.5Z"/><path d="M8.5 9.5h7M8.5 13h4"/></svg>
+</button>
+<section class="panel" id="chatPanel" role="dialog" aria-label="Campus Handbook Assistant chat" aria-modal="false" hidden>
+  <header class="panel-header">
+    <div class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v7.4a2.8 2.8 0 0 1-2.8 2.8H9l-4 3v-1.5Z"/><path d="M8.5 9.5h7M8.5 13h4"/></svg></div>
+    <div class="header-copy"><div class="header-title">Campus Assistant</div><div class="header-subtitle">Ask about your handbook</div></div>
+    <div class="panel-toolbar">
+      <button class="icon-button" id="newChat" type="button" aria-label="Start a new chat" title="New chat">↻</button>
+      <button class="icon-button" id="closeChat" type="button" aria-label="Close chat" title="Close">×</button>
+    </div>
+  </header>
+  <section class="chat" id="chat" aria-live="polite">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v7.4a2.8 2.8 0 0 1-2.8 2.8H9l-4 3v-1.5Z"/><path d="M8.5 9.5h7M8.5 13h4"/></svg></div>
+      <h1>How can I help?</h1>
+      <p>Build an index in the settings sidebar, then ask away.</p>
+      <div class="suggestions">
+        <button class="suggestion" type="button">How many books can a third year student borrow?</button>
+        <button class="suggestion" type="button">How do I get permission to use the laboratory after hours?</button>
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+  </section>
+  <div class="composer-wrap">
+    <div class="notice" id="notice" role="status" aria-live="polite"></div>
+    <form class="composer" id="form">
+      <textarea id="question" rows="1" placeholder="Ask about your handbook..." aria-label="Your question"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send message">↑</button>
+    </form>
+    <p class="footnote">Answers can be wrong. Check the source passages.</p>
+  </div>
+</section>
+<script>
+const $=id=>document.getElementById(id);
+let indexed=false,busy=false;
+async function api(path,body){const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw Error(data.error||'Request failed');return data;}
+function setBusy(value){busy=value;$('send').disabled=value;document.querySelectorAll('.build,#newChat').forEach(button=>button.disabled=value);}
+function showNotice(message,isError=false){$('notice').textContent=message;$('notice').style.color=isError?'#a33':'#637a82';}
+function setIndexStatus(message){$('indexStatus').textContent=message;}
+function setPanelOpen(open){
+  $('chatPanel').hidden=!open;
+  $('launcher').hidden=open;
+  $('launcher').setAttribute('aria-expanded',String(open));
+  if(open)$('question').focus({preventScroll:true});
+  else $('launcher').focus();
+}
+async function index(sample){
+  if(busy)return;
+  indexed=false;setIndexStatus('Building…');showNotice('Indexing documents…');setBusy(true);
+  try{
+    let files=[];
+    if(!sample){
+      const chosen=[...$('files').files];
+      if(!chosen.length)throw Error('Select documents first.');
+      if(chosen.reduce((sum,file)=>sum+file.size,0)>5000000)throw Error('Keep files below 5 MB total.');
+      for(const file of chosen){const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);files.push({name:file.name,data:btoa(binary)});}
+    }
+    const data=await api('/api/index',{sample,files,mode:$('mode').value,size:Number($('size').value),overlap:Number($('overlap').value)});
+    indexed=true;setIndexStatus(`${data.chunks} chunks · ${data.mode}`);showNotice(`Index ready in ${data.seconds}s. ${data.warnings.join(' ')}`);
+  }catch(error){setIndexStatus('No index built');showNotice(error.message,true);}
+  finally{setBusy(false);}
+}
+function addMessage(role,text,hits){
+  $('welcome').hidden=true;
+  const row=document.createElement('div');row.className=`message ${role}`;
+  if(role==='user'){
+    const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;row.append(bubble);
+  }else{
+    const avatar=document.createElement('div');avatar.className='mini-avatar';avatar.textContent='C';
+    const content=document.createElement('div');content.className='assistant-content';
+    const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;content.append(bubble);
+    if(hits&&hits.length){
+      const details=document.createElement('details');details.className='sources';
+      const summary=document.createElement('summary');summary.textContent=`Retrieved evidence (${hits.length} passages)`;details.append(summary);
+      for(const hit of hits){
+        const source=document.createElement('div');source.className='source';
+        const heading=document.createElement('strong');heading.textContent=`[${hit.label}] ${hit.source} · page ${hit.page} · chunk ${hit.chunk} · similarity ${hit.score}`;
+        const passage=document.createElement('p');passage.textContent=hit.text;source.append(heading,passage);details.append(source);
+      }
+      content.append(details);
+    }
+    row.append(avatar,content);
+  }
+  $('messages').append(row);$('chat').scrollTop=$('chat').scrollHeight;
+}
+async function sendQuestion(question){
+  const text=question.trim();
+  if(!text||busy)return;
+  $('question').value='';$('question').style.height='auto';
+  addMessage('user',text);showNotice('Thinking… Model requests can take several minutes on CPU.');setBusy(true);
+  try{
+    if(!indexed)throw Error('Build a sample index or index documents in settings first.');
+    const data=await api('/api/ask',{question:text,k:Number($('k').value),answer_mode:$('answerMode').value,model:$('model').value});
+    addMessage('assistant',data.answer,data.hits);showNotice(`${data.answer_mode} mode · ${data.seconds}s. Similarity is not confidence.`);
+  }catch(error){addMessage('assistant',error.message);showNotice(error.message,true);}
+  finally{setBusy(false);}
+}
+$('launcher').addEventListener('click',()=>setPanelOpen(true));
+$('closeChat').addEventListener('click',()=>setPanelOpen(false));
+$('sample').addEventListener('click',()=>index(true));
+$('upload').addEventListener('click',()=>index(false));
+$('form').addEventListener('submit',event=>{event.preventDefault();sendQuestion($('question').value);});
+$('question').addEventListener('input',event=>{event.target.style.height='auto';event.target.style.height=`${Math.min(event.target.scrollHeight,108)}px`;});
+$('question').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();$('form').requestSubmit();}});
+$('newChat').addEventListener('click',()=>{if(busy)return;$('messages').replaceChildren();$('welcome').hidden=false;$('chat').scrollTop=0;showNotice('');});
+document.querySelectorAll('.suggestion').forEach(button=>button.addEventListener('click',()=>sendQuestion(button.textContent)));
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('chatPanel').hidden)setPanelOpen(false);});
+fetch('/api/status').then(response=>response.json()).then(data=>{indexed=data.indexed;setIndexStatus(indexed?`${data.chunks} chunks · ready`:'No index built');}).catch(error=>showNotice(`Could not check index status: ${error.message}`,true));
+</script>
+</body>
+</html>

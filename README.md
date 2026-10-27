@@ -56,6 +56,8 @@ If the app is not already running, run it. Select **Semantic embeddings**, click
 
 Both model endpoints are fixed to `127.0.0.1:11434`. The app has no cloud calls and models are not downloaded automatically. Once Python, optional PDF dependency, and models are installed, the app is designed to run without internet. Verify this on representative laptops in advance.
 
+In RAG mode, standalone greetings receive a brief response without requiring an index or calling the model. Other questions are checked against retrieved evidence before generation: keyword mode requires a meaningful query term in its best passage, while semantic mode requires a top cosine score of at least 0.58. Below that strict semantic cutoff, the app abstains. This heuristic can reject valid paraphrases or accept a weakly related question; inspect evidence and tune the cutoff for a different corpus.
+
 For weaker laptops, try `ollama pull qwen2.5:0.5b` and select it in the UI. It has lower answer quality. Plan for roughly 8 GB RAM as a practical workshop starting point, preferably 16 GB, with several GB free disk; these are planning estimates, not guaranteed model requirements. CPU latency depends on the machine. Share one capable laptop per pair if needed.
 
 ## Student demo sequence

@@ -6,7 +6,11 @@ import json
 import time
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from rag import Index, build_prompt, generate, citation_check
+from rag import (
+    GREETING_RESPONSE, OUT_OF_SCOPE_RESPONSE, RAG_MIN_SEMANTIC_SCORE,
+    Index, build_prompt, citation_check, generate, has_keyword_evidence,
+    is_greeting,
+)
 
 ROOT = Path(__file__).resolve().parent
 STATE = {'index': None}
@@ -54,6 +58,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             return self.send((ROOT/'index.html').read_bytes(), content_type='text/html')
+        if self.path == '/chat':
+            return self.send((ROOT/'chat.html').read_bytes(), content_type='text/html')
         if self.path == '/api/status':
             idx = STATE['index']
             return self.send({'indexed': idx is not None, 'chunks': len(idx.chunks) if idx else 0})
@@ -87,30 +93,45 @@ class Handler(BaseHTTPRequestHandler):
                 result = {'chunks': len(idx.chunks), 'mode': idx.mode, 'warnings': warnings,
                           'preview': [vars(c) for c in idx.chunks[:5]]}
             elif self.path == '/api/ask':
-                idx = STATE['index']
-                if idx is None:
-                    raise ValueError('Build an index first.')
                 question = str(body.get('question', '')).strip()
                 if not question or len(question) > 1500:
                     raise ValueError('Question must contain 1..1500 characters.')
-                hits = idx.search(question, int(body.get('k', 3)))
                 mode = body.get('answer_mode', 'evidence')
                 if mode not in ('evidence', 'rag', 'plain'):
                     raise ValueError('Unknown answer mode.')
-                # Zero keyword overlap is a useful baseline rejection; semantic scores have no universal cutoff.
-                no_overlap = idx.mode == 'keyword' and hits[0]['score'] <= 0
-                if mode == 'evidence':
-                    answer = ('No matching words. I do not know from these documents.' if no_overlap
-                              else 'Retrieved passages below. This mode does not generate an answer.')
-                elif no_overlap and mode == 'rag':
-                    answer = "I don't know from these documents. No keyword overlap was found."
+                idx = STATE['index']
+                if mode == 'rag' and is_greeting(question):
+                    hits = []
+                    answer = GREETING_RESPONSE
+                    prompt = question
+                elif idx is None:
+                    raise ValueError('Build an index first.')
                 else:
-                    model = body.get('model', 'qwen2.5:1.5b')
-                    if model not in ('qwen2.5:1.5b', 'qwen2.5:0.5b'):
-                        raise ValueError('Choose one of the provided local generation models.')
-                    answer = generate(question, hits, model, use_rag=mode == 'rag')
+                    hits = idx.search(question, int(body.get('k', 3)))
+                    if mode == 'evidence':
+                        no_overlap = idx.mode == 'keyword' and hits[0]['score'] <= 0
+                        answer = ('No matching words. I do not know from these documents.' if no_overlap
+                                  else 'Retrieved passages below. This mode does not generate an answer.')
+                    elif mode == 'rag':
+                        if idx.mode == 'semantic':
+                            out_of_scope = hits[0]['score'] < RAG_MIN_SEMANTIC_SCORE
+                        else:
+                            out_of_scope = not has_keyword_evidence(question, hits)
+                        if out_of_scope:
+                            answer = OUT_OF_SCOPE_RESPONSE
+                        else:
+                            model = body.get('model', 'qwen2.5:1.5b')
+                            if model not in ('qwen2.5:1.5b', 'qwen2.5:0.5b'):
+                                raise ValueError('Choose one of the provided local generation models.')
+                            answer = generate(question, hits, model, use_rag=True)
+                    else:
+                        model = body.get('model', 'qwen2.5:1.5b')
+                        if model not in ('qwen2.5:1.5b', 'qwen2.5:0.5b'):
+                            raise ValueError('Choose one of the provided local generation models.')
+                        answer = generate(question, hits, model, use_rag=False)
+                    prompt = question if mode == 'plain' else build_prompt(question, hits)
                 result = {'answer': answer, 'hits': hits, 'answer_mode': mode,
-                          'prompt': question if mode == 'plain' else build_prompt(question, hits),
+                          'prompt': prompt,
                           'citations': citation_check(answer, hits) if mode == 'rag' else None}
             else:
                 return self.send({'error': 'Not found'}, 404)
