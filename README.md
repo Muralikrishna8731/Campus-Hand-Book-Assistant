@@ -130,5 +130,4 @@ Verified during preparation on 26 October 2026. Recheck versions and downloads b
 * [Smaller Qwen model](https://ollama.com/library/qwen2.5:0.5b)
 * [Ollama local data FAQ](https://docs.ollama.com/faq)
 * [pypdf text extraction](https://pypdf.readthedocs.io/en/stable/user/extract-text.html)
-#   R A G - S e s s i o n - V C E T -  
- 
+#
